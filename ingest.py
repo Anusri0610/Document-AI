@@ -15,9 +15,18 @@ def get_ocr_reader():
     global ocr_reader
     if ocr_reader is None:
         print("🤖 Initializing EasyOCR models... (this may take a moment)")
-        # Reverting to 'en' only. Loading multiple custom language models ('ta') on 
-        # Streamlit Cloud's limited PyTorch environment causes state_dict crashes.
-        ocr_reader = easyocr.Reader(['en'])
+        try:
+            # Force CPU mode on Streamlit Cloud to prevent memory spikes
+            ocr_reader = easyocr.Reader(['en'], gpu=False)
+        except Exception as e:
+            print(f"⚠️ Corrupted EasyOCR model detected ({e}). Clearing cache and retrying...")
+            import shutil
+            model_dir = os.path.expanduser('~/.EasyOCR/model')
+            if os.path.exists(model_dir):
+                shutil.rmtree(model_dir)
+            # Second attempt after clearing the corrupted weights
+            ocr_reader = easyocr.Reader(['en'], gpu=False)
+            
     return ocr_reader
 
 def extract_text_from_pdf(pdf_path: str) -> str:
