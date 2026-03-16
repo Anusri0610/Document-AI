@@ -55,13 +55,17 @@ def retrieve_context(query: str, domain: str, filename: str = None) -> str:
     query_embedding = embed_model.encode([query]).tolist()
     
     # Filter by specific file if provided, otherwise search the whole domain
-    where_filter = {"source_document": filename} if filename else None
-    
-    results = collection.query(
-        query_embeddings=query_embedding, 
-        n_results=3,
-        where=where_filter
-    )
+    if filename:
+        results = collection.query(
+            query_embeddings=query_embedding,
+            n_results=3,
+            where={"source_document": filename}
+        )
+    else:
+        results = collection.query(
+            query_embeddings=query_embedding,
+            n_results=3
+        )
     
     if not results or not results.get("documents") or len(results["documents"]) == 0 or len(results["documents"][0]) == 0:
         return ""
