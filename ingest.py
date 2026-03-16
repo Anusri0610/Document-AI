@@ -15,8 +15,9 @@ def get_ocr_reader():
     global ocr_reader
     if ocr_reader is None:
         print("🤖 Initializing EasyOCR models... (this may take a moment)")
-        # Added 'ta' for Tamil support per user request
-        ocr_reader = easyocr.Reader(['en', 'ta'])
+        # Reverting to 'en' only. Loading multiple custom language models ('ta') on 
+        # Streamlit Cloud's limited PyTorch environment causes state_dict crashes.
+        ocr_reader = easyocr.Reader(['en'])
     return ocr_reader
 
 def extract_text_from_pdf(pdf_path: str) -> str:
