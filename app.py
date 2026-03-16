@@ -32,6 +32,15 @@ def detect_domain(text: str) -> str:
         pass
     return "medical" # default fallback
 
+def reset_app_state():
+    """Wipes the active session state when a new file is uploaded to bring the app back to initial setup."""
+    if "messages" in st.session_state:
+        st.session_state["messages"] = []
+    if "active_domain" in st.session_state:
+        del st.session_state["active_domain"]
+    if "active_file" in st.session_state:
+        del st.session_state["active_file"]
+
 st.title("📄 Multi-Domain AI Assistant")
 st.markdown("Upload a Medical PDF, Legal Contract, or Handwritten Recipe to extract structured data or chat with it!")
 
@@ -39,7 +48,7 @@ st.markdown("Upload a Medical PDF, Legal Contract, or Handwritten Recipe to extr
 with st.sidebar:
     st.header("1. Upload Document")
     domain_choice = st.selectbox("Select Domain (Or leave as Auto)", ["Auto-Detect", "Medical", "Legal", "Recipe"])
-    uploaded_file = st.file_uploader("Upload PDF or Image", type=["pdf", "png", "jpg", "jpeg"])
+    uploaded_file = st.file_uploader("Upload PDF or Image", type=["pdf", "png", "jpg", "jpeg"], on_change=reset_app_state)
     
     if uploaded_file is not None and st.button("Process Document"):
         with st.spinner("Analyzing and Ingesting..."):
@@ -75,6 +84,10 @@ with st.sidebar:
             # Save the active domain for the tabs
             st.session_state["active_domain"] = detected_domain
             st.session_state["active_file"] = file_path
+            
+            # Clear previous chat history when a new document is uploaded
+            if "messages" in st.session_state:
+                st.session_state["messages"] = []
 
 # Main Layout: Tabs
 tab1, tab2 = st.tabs(["📊 Structured Extraction", "💬 Chat with Document"])
@@ -128,7 +141,13 @@ with tab1:
 
 
 with tab2:
-    st.header("Interactive Chat")
+    col1, col2 = st.columns([0.8, 0.2])
+    with col1:
+        st.header("Interactive Chat")
+    with col2:
+        if st.button("🗑️ Clear Chat", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
     
     active_domain = st.session_state.get("active_domain", "medical") # fallback
     

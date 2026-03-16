@@ -5,3 +5,5 @@ chromadb
 sentence-transformers
 PyPDF2
 easyocr
+opencv-python-headless
+Pillow

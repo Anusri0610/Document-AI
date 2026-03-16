@@ -15,7 +15,8 @@ def get_ocr_reader():
     global ocr_reader
     if ocr_reader is None:
         print("🤖 Initializing EasyOCR models... (this may take a moment)")
-        ocr_reader = easyocr.Reader(['en'])
+        # Added 'ta' for Tamil support per user request
+        ocr_reader = easyocr.Reader(['en', 'ta'])
     return ocr_reader
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -28,6 +29,16 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     return full_text
 
 def extract_text_from_image(image_path: str) -> str:
+    from PIL import Image
+    # Streamlit Cloud only provides 1GB of RAM. High resolution images will cause 
+    # PyTorch/EasyOCR to crash the app (Out-Of-Memory)
+    try:
+        with Image.open(image_path) as img:
+            img.thumbnail((800, 800))
+            img.save(image_path)
+    except Exception as e:
+        print(f"Image compression failed: {e}")
+        
     reader = get_ocr_reader()
     results = reader.readtext(image_path)
     # readtext returns a list of tuples: (bounding_box, text, confidence)
