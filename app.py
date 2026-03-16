@@ -168,7 +168,8 @@ with tab2:
         
         with st.chat_message("assistant"):
             with st.spinner(f"Searching {active_domain.upper()} Vector Database..."):
-                context = retrieve_context(query, active_domain)
+                active_file_stem = Path(st.session_state["active_file"]).stem if "active_file" in st.session_state else None
+                context = retrieve_context(query, active_domain, filename=active_file_stem)
                 
                 if not context:
                     answer = f"No relevant context found in the `{active_domain}` database. Did you process the document?"
